@@ -1,22 +1,19 @@
 import { OrbitControls } from "@react-three/drei";
-import PostProcessing from "./components/Postprocessing.jsx";
-import Lighting from "./components/Lighting.jsx";
 import { Perf } from "r3f-webgpu-perf";
+import Foliage from "./components/Foliage.jsx";
+import { Model } from "./components/Model.jsx";
+import PostProcessing from "./components/Postprocessing.jsx";
 
 export default function App() {
   return (
     <>
       <Perf position="top-left" showVRAM={true} />
+      <color args={["#000000"]} attach="background" />
+
       <OrbitControls />
-
-      <Lighting />
-
-      <mesh>
-        <boxGeometry args={[1, 1, 1]} />
-        <meshNormalMaterial />
-      </mesh>
-
-      {/* <PostProcessing /> */}
+      <Foliage />
+      <Model />
+      <PostProcessing />
     </>
   );
 }

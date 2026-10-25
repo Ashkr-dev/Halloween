@@ -4,13 +4,14 @@ import "./index.css";
 import App from "./App.jsx";
 import { Canvas, extend } from "@react-three/fiber";
 import * as THREE from "three/webgpu";
+import { Leva } from "leva";
 
 extend(THREE);
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
+    <Leva collapsed />
     <Canvas
-      
       shadows
       gl={async (canvasTarget) => {
         // ⬇️ Extract the real HTML canvas element from the R3F target wrapper object

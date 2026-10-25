@@ -1,13 +1,11 @@
 import { useFrame, useThree } from "@react-three/fiber";
-import { pass, uniform } from "three/tsl"; // 1. Added uniform import
+import { pass, uniform } from "three/tsl";
 import * as THREE from "three/webgpu";
 import { useMemo, useEffect } from "react";
 import { bloom } from "three/examples/jsm/tsl/display/BloomNode.js";
 import { useControls } from "leva";
 
-
 export default function PostProcessing() {
-  console.log(useControls)
   const { bloomEnabled, bloomThreshold, bloomStrength, bloomRadius } =
     useControls("PostProcessing", {
       bloomEnabled: true,
@@ -30,7 +28,7 @@ export default function PostProcessing() {
 
   const { scene, camera, gl: renderer } = useThree();
 
-  // 2. Create uniform node references that hold their state persistently
+  // 1. Create uniform node references that hold state persistently
   const uniforms = useMemo(
     () => ({
       threshold: uniform(0.25),
@@ -40,40 +38,44 @@ export default function PostProcessing() {
     [],
   );
 
-  // 3. Keep uniforms in sync with your reactive Leva sliders
-  uniforms.threshold.value = bloomThreshold;
-  uniforms.strength.value = bloomStrength;
-  uniforms.radius.value = bloomRadius;
-
-  // 4. Set up your permanent pipeline structures
-  const { renderPipeline, scenePass, bloomPass } = useMemo(() => {
+  // 2. Setup your permanent post-processing pipeline structures safely once
+  const { renderPipeline, scenePass, bloomChain } = useMemo(() => {
     const renderPipeline = new THREE.RenderPipeline(renderer);
     const scenePass = pass(scene, camera);
 
-    // Inject the uniform nodes directly into the bloom node creation
-    const glow = bloom(
+    // Build the bloom node calculation graph using our uniforms
+    const glowNode = bloom(
       scenePass,
       uniforms.strength,
       uniforms.radius,
       uniforms.threshold,
     );
-    const sceneBloom = scenePass.add(glow);
+    const bloomChain = scenePass.add(glowNode);
 
-    renderPipeline.outputNode = sceneBloom;
-
-    return { renderPipeline, scenePass, bloomPass: sceneBloom };
+    return { renderPipeline, scenePass, bloomChain };
   }, [scene, camera, renderer, uniforms]);
 
-  // 5. Only handle graph tree switching when the checkbox actually toggles
+  // 3. Keep uniforms in sync with your reactive Leva sliders via useEffect
   useEffect(() => {
-    renderPipeline.outputNode = bloomEnabled ? bloomPass : scenePass;
-    renderPipeline.needsUpdate = true; // Only recompile shader when turning ON/OFF
-  }, [bloomEnabled, renderPipeline, bloomPass, scenePass]);
+    uniforms.threshold.value = bloomThreshold;
+    uniforms.strength.value = bloomStrength;
+    uniforms.radius.value = bloomRadius;
+  }, [bloomThreshold, bloomStrength, bloomRadius, uniforms]);
 
-  // 6. Super lightweight render loop
+  // 4. Handle graph tree switching cleanly when the checkbox actually toggles
+  useEffect(() => {
+    renderPipeline.outputNode = bloomEnabled ? bloomChain : scenePass;
+
+    // Explicitly notify the WebGPU node compiler system that the graph output root swapped
+    if (renderer.backend && renderer.backend.updater) {
+      renderer.backend.updater.updatePipeline(renderPipeline);
+    }
+  }, [bloomEnabled, renderPipeline, bloomChain, scenePass, renderer]);
+
+  // 5. Lightweight render loop runner
   useFrame(() => {
     renderPipeline.render();
-  }, 1);
+  }, 1); // Render priority 1 ensures it executes after the main scene graph completes updates
 
   return null;
 }

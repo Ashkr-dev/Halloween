@@ -9,20 +9,19 @@ export default function Lighting() {
 
   return (
     <>
-      <ambientLight intensity={0.5} />
+      <ambientLight intensity={1.0} />
       <directionalLight
         ref={directionalLightRef}
+        color={"#72B1FF"}
         castShadow
-        position={[1, 2, 3]}
-        intensity={1}
+        position={[-8, 8, -10]}
+        intensity={1.5}
         shadow-mapSize={[1024, 1024]}
-        shadow-camera-near={1}
-        shadow-camera-far={10}
-        shadow-camera-top={5}
-        shadow-camera-right={5}
-        shadow-camera-bottom={-5}
-        shadow-camera-left={-5}
+      
+      
       />
+
+
     </>
   );
 }
