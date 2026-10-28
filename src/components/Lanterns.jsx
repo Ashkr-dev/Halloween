@@ -1,5 +1,5 @@
 import { useFrame } from "@react-three/fiber";
-import { uniform } from "three/tsl";
+import { uniform, uv, vec3 } from "three/tsl";
 import * as THREE from "three/webgpu";
 
 // ==========================================

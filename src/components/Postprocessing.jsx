@@ -31,9 +31,9 @@ export default function PostProcessing() {
   // 1. Create uniform node references that hold state persistently
   const uniforms = useMemo(
     () => ({
-      threshold: uniform(0.25),
-      strength: uniform(0.2),
-      radius: uniform(0.7),
+      threshold: uniform(0.17),
+      strength: uniform(0.5),
+      radius: uniform(0.8),
     }),
     [],
   );

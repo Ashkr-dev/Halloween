@@ -10,7 +10,7 @@ import { Wings, wingGradientNode, wingIntensity } from "./Wings.jsx";
 // ==========================================
 // 1. Static Global Environment Uniforms
 // ==========================================
-const moonColor = uniform(new THREE.Color("#164a89"));
+const moonColor = uniform(new THREE.Color("#285081"));
 const moonIntensity = uniform(6.0);
 
 // ==========================================
@@ -58,16 +58,16 @@ export function Model(props) {
 
   // Central Control Interface Panel
   const controls = useControls("Graveyard Lighting", {
-    moonColor: "#164a89",
+    moonColor: "#285081",
     moonIntensity: { value: 6.0, min: 0, max: 10, step: 0.1 },
 
     // Lantern settings passed down to <Lanterns />
-    lanternColor: "#6bff30",
+    lanternColor: "#30f6ff",
     lanternIntensity: { value: 1.5, min: 0, max: 10, step: 0.1 },
 
     // Wing settings passed down to <Wings />
-    wingTopColor: "#e2dd32",
-    wingBottomColor: "#ff0000",
+    wingTopColor: "#6a32e2",
+    wingBottomColor: "#e17cff",
     wingIntensity: { value: 4.9, min: 0, max: 10, step: 0.1 },
     wingGradient: { value: [0.0, 1.0], min: 0, max: 1, step: 0.001 },
   });

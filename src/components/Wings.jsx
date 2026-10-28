@@ -5,10 +5,10 @@ import * as THREE from "three/webgpu";
 // ==========================================
 // 1. Static TSL Uniforms (Isolated for Wings)
 // ==========================================
-export const wingTopColor = uniform(new THREE.Color("#e2dd32"));
-export const wingBottomColor = uniform(new THREE.Color("#ff0000"));
-export const wingIntensity = uniform(4.5);
-export const wingGradient = uniform(vec2(0.0, 1.0));
+export const wingTopColor = uniform(new THREE.Color("#6a32e2"));
+export const wingBottomColor = uniform(new THREE.Color("#e17cff"));
+export const wingIntensity = uniform(4.9);
+export const wingGradient = uniform(vec2(0.33, 1.0));
 
 // ==========================================
 // 2. Exported Core Gradient Node Graph
