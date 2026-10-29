@@ -5,6 +5,8 @@ import { add, mul, texture, uniform, uv, vec4 } from "three/tsl";
 import * as THREE from "three/webgpu";
 import useFireMaterial from "./Fire.jsx";
 import { Lanterns, lanternColor, lanternIntensity } from "./Lanterns.jsx";
+import { Pot, potColorNode } from "./Pot.jsx";
+import { Smoke } from "./Smoke.jsx";
 import { Wings, wingGradientNode, wingIntensity } from "./Wings.jsx";
 
 // ==========================================
@@ -61,6 +63,8 @@ export function Model(props) {
     moonColor: "#285081",
     moonIntensity: { value: 6.0, min: 0, max: 10, step: 0.1 },
 
+    // Pot setting passed down to <Pot />
+    potColor: "#32e241", 
     // Lantern settings passed down to <Lanterns />
     lanternColor: "#30f6ff",
     lanternIntensity: { value: 1.5, min: 0, max: 10, step: 0.1 },
@@ -75,6 +79,8 @@ export function Model(props) {
   useFrame(() => {
     moonColor.value.set(controls.moonColor);
     moonIntensity.value = controls.moonIntensity;
+
+    potColorNode.value.set(controls.potColor);
   });
 
   const { nodes } = useGLTF("/baked.glb");
@@ -92,6 +98,10 @@ export function Model(props) {
         material={statueMaterial}
         position={[0.003, 0.67, 0.138]}
       />
+
+      {/* Emissive Pot Element */}
+      <Pot nodes={nodes} />
+      <Smoke nodes={nodes} />
 
       {/* Emissive Fire Element */}
       <mesh

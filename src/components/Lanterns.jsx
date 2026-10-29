@@ -1,5 +1,5 @@
 import { useFrame } from "@react-three/fiber";
-import { uniform, uv, vec3 } from "three/tsl";
+import { min, uniform, uv } from "three/tsl";
 import * as THREE from "three/webgpu";
 
 // ==========================================
@@ -12,7 +12,10 @@ export const lanternIntensity = uniform(1.5);
 // 2. Isolated Material Setup
 // ==========================================
 const lanternMaterial = new THREE.MeshBasicNodeMaterial();
-lanternMaterial.colorNode = lanternColor;
+
+// Gradient
+const gradient = min(uv().x.mul(2).pow(3), uv().x.mul(1.2).pow(2).oneMinus());
+lanternMaterial.colorNode = lanternColor.mul(gradient);
 
 // ==========================================
 // 3. Lanterns Sub-Component
@@ -35,11 +38,7 @@ export function Lanterns({ nodes, controls }) {
         material={lanternMaterial}
         position={[0.008, 0, -6.016]}
       />
-      <mesh
-        geometry={nodes.lanterns.geometry}
-        material={lanternMaterial}
-        position={[1.6, 1.706, 7.683]}
-      />
+      <mesh geometry={nodes.lanterns.geometry} material={lanternMaterial} />
     </>
   );
 }

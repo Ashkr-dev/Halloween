@@ -16,29 +16,59 @@ import {
 } from "three/tsl";
 import * as THREE from "three/webgpu";
 
+// ==========================================
+// 1. Pure Static TSL Graphs (Compiled Exactly ONCE)
+// ==========================================
+const getFireColorNode = Fn(([uSecColor, uFireColor, uTipColor, uFireIntensity]) => {
+  const baseColor = mix(
+    mix(uSecColor, uFireColor, smoothstep(1, 0, uv().y)),
+    uTipColor,
+    smoothstep(0.7, 0.1, uv().y),
+  );
+  return baseColor.mul(uFireIntensity);
+});
+
+const getFireOpacityNode = Fn(([noiseTexNode, uFireUvScale, uFireSpeed]) => {
+  const fireUv = uv()
+    .mul(uFireUvScale)
+    .add(vec2(0, time.mul(uFireSpeed)))
+    .toVar();
+
+  const distortion = sin(fireUv.y.mul(10)).mul(0.05);
+  fireUv.x.addAssign(distortion);
+
+  const noiseCoords = vec2(fireUv.x, fireUv.y);
+  const fireNoise = texture(noiseTexNode, noiseCoords).r;
+  fireNoise.assign(smoothstep(0.4, 1, fireNoise));
+
+  const edgeFade = min(
+    smoothstep(0.1, 1, uv().y),
+    smoothstep(1, 0.8, uv().y),
+  );
+
+  return mul(fireNoise, edgeFade).clamp(0, 1);
+});
+
+// ==========================================
+// 2. Optimized Custom Hook
+// ==========================================
 export default function useFireMaterial() {
   const perlinNoise = useTexture("./Textures/noises.webp");
 
-  useEffect(() => {
-    if (perlinNoise) {
-      perlinNoise.wrapS = THREE.RepeatWrapping;
-      perlinNoise.wrapT = THREE.RepeatWrapping;
-      perlinNoise.needsUpdate = true;
-    }
-  }, [perlinNoise]);
-
+  // Keep uniforms persistent per-hook instance
   const uniforms = useMemo(
     () => ({
       uFireColor: uniform(new THREE.Color("#ff8300")),
       uSecColor: uniform(new THREE.Color("#ffc7a7")),
       uTipColor: uniform(new THREE.Color("#ffb2b2")),
-      uFireUvScale: uniform(vec2(4.39, 0.3)),
+      uFireUvScale: uniform(vec2(4, 0.3)),
       uFireIntensity: uniform(1.5),
+      uFireSpeed: uniform(0.3),
     }),
     [],
   );
 
-  // OPTIMIZATION: Update uniforms REACTIVELY via Leva callbacks, freeing up the CPU loop completely!
+  // Update uniforms REACTIVELY via Leva callbacks bypassing state
   useControls("Witch-Pot Fire", {
     fireColor: {
       value: "#ff8300",
@@ -60,7 +90,7 @@ export default function useFireMaterial() {
       onChange: (v) => (uniforms.uFireIntensity.value = v),
     },
     fireUvX: {
-      value: 4.39,
+      value: 4,
       min: 0,
       max: 20,
       step: 0.001,
@@ -73,45 +103,48 @@ export default function useFireMaterial() {
       step: 0.001,
       onChange: (v) => (uniforms.uFireUvScale.value.y = v),
     },
+    fireSpeed: {
+      value: 0.3,
+      min: 0,
+      max: 10,
+      step: 0.001,
+      onChange: (v) => (uniforms.uFireSpeed.value = v),
+    },
   });
 
-  // The useFrame hook is now completely removed because TSL handles the 'time' node autonomously on the GPU!
-
+  // Material setup only builds bindings once on texture target load
   const fireMaterial = useMemo(() => {
+    if (perlinNoise) {
+      perlinNoise.wrapS = THREE.RepeatWrapping;
+      perlinNoise.wrapT = THREE.RepeatWrapping;
+      // REMOVED: perlinNoise.needsUpdate = true (unnecessary CPU data upload loop)
+    }
+
     const material = new THREE.MeshBasicNodeMaterial({
       transparent: true,
-      depthWrite: false, // Turn this back on if fire renders behind things incorrectly!
+      depthWrite: false,
     });
 
-    material.colorNode = Fn(() => {
-      const baseColor = mix(
-        mix(uniforms.uSecColor, uniforms.uFireColor, smoothstep(1, 0, uv().y)),
-        uniforms.uTipColor,
-        smoothstep(0.7, 0.1, uv().y),
-      );
-      return baseColor.mul(uniforms.uFireIntensity);
-    })();
+    const activeNoiseTex = perlinNoise || new THREE.Texture();
 
-    material.opacityNode = Fn(() => {
-      const fireUv = uv()
-        .mul(uniforms.uFireUvScale)
-        .add(vec2(0, time.mul(0.5)))
-        .toVar();
-
-      const distortion = sin(fireUv.y.mul(10)).mul(0.05);
-      fireUv.x.addAssign(distortion);
-
-      const noiseCoords = vec2(fireUv.x, fireUv.y);
-      const fireNoise = texture(perlinNoise, noiseCoords).r;
-
-      const edgeFade = min(uv().y.pow(3), uv().y.oneMinus().mul(10));
-
-      return mul(fireNoise, edgeFade).clamp(0, 1);
-    })();
+    // Map the structures directly while injecting structural parameters safely
+    material.colorNode = getFireColorNode(
+      uniforms.uSecColor, 
+      uniforms.uFireColor, 
+      uniforms.uTipColor, 
+      uniforms.uFireIntensity
+    );
+    
+    material.opacityNode = getFireOpacityNode(
+      activeNoiseTex, 
+      uniforms.uFireUvScale, 
+      uniforms.uFireSpeed
+    );
 
     return material;
   }, [uniforms, perlinNoise]);
 
+  // Clean memory management safely on unmount
   useEffect(() => {
     return () => {
       fireMaterial.dispose();

@@ -35,7 +35,6 @@ export default function App() {
 
       <Camera />
       <Sparkles />
-
       <Foliage />
       <Model />
       <PostProcessing />

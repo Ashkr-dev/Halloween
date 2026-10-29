@@ -1,49 +1,64 @@
 import { useFrame, useThree } from "@react-three/fiber";
 import { pass, uniform } from "three/tsl";
 import * as THREE from "three/webgpu";
-import { useMemo, useEffect } from "react";
+import { useMemo, useEffect, useState } from "react";
 import { bloom } from "three/examples/jsm/tsl/display/BloomNode.js";
 import { useControls } from "leva";
 
 export default function PostProcessing() {
-  const { bloomEnabled, bloomThreshold, bloomStrength, bloomRadius } =
-    useControls("PostProcessing", {
-      bloomEnabled: true,
-      bloomThreshold: {
-        value: 0.25,
-        min: 0,
-        max: 1,
-        step: 0.01,
-        label: "Threshold",
-      },
-      bloomStrength: {
-        value: 0.2,
-        min: 0,
-        max: 5,
-        step: 0.1,
-        label: "Strength",
-      },
-      bloomRadius: { value: 0.7, min: 0, max: 3, step: 0.1, label: "Radius" },
-    });
-
   const { scene, camera, gl: renderer } = useThree();
+  
+  // Track toggle states at the React layer so we structurally update the pipeline safely
+  const [enabled, setEnabled] = useState(true);
 
-  // 1. Create uniform node references that hold state persistently
+  // 1. Uniform node references for the sliders
   const uniforms = useMemo(
     () => ({
-      threshold: uniform(0.17),
-      strength: uniform(0.5),
-      radius: uniform(0.8),
+      threshold: uniform(0.25),
+      strength: uniform(0.2),
+      radius: uniform(0.7),
     }),
     [],
   );
 
-  // 2. Setup your permanent post-processing pipeline structures safely once
+  // 2. Drive uniform properties via change events
+  useControls("PostProcessing", {
+    bloomEnabled: {
+      value: true,
+      onChange: (v) => setEnabled(v), // Safe React state flip
+    },
+    bloomThreshold: {
+      value: 0.25,
+      min: 0,
+      max: 1,
+      step: 0.01,
+      label: "Threshold",
+      onChange: (v) => (uniforms.threshold.value = v),
+    },
+    bloomStrength: {
+      value: 0.2,
+      min: 0,
+      max: 5,
+      step: 0.1,
+      label: "Strength",
+      onChange: (v) => (uniforms.strength.value = v),
+    },
+    bloomRadius: { 
+      value: 0.7, 
+      min: 0, 
+      max: 3, 
+      step: 0.1, 
+      label: "Radius",
+      onChange: (v) => (uniforms.radius.value = v),
+    },
+  });
+
+  // 3. Construct the independent nodes safely
   const { renderPipeline, scenePass, bloomChain } = useMemo(() => {
-    const renderPipeline = new THREE.RenderPipeline(renderer);
+    const pipeline = new THREE.RenderPipeline(renderer);
     const scenePass = pass(scene, camera);
 
-    // Build the bloom node calculation graph using our uniforms
+    // Dynamic node evaluation graph
     const glowNode = bloom(
       scenePass,
       uniforms.strength,
@@ -52,30 +67,28 @@ export default function PostProcessing() {
     );
     const bloomChain = scenePass.add(glowNode);
 
-    return { renderPipeline, scenePass, bloomChain };
+    return { renderPipeline: pipeline, scenePass, bloomChain };
   }, [scene, camera, renderer, uniforms]);
 
-  // 3. Keep uniforms in sync with your reactive Leva sliders via useEffect
+  // 4. Safely redirect the graph root pointer depending on the state variable
   useEffect(() => {
-    uniforms.threshold.value = bloomThreshold;
-    uniforms.strength.value = bloomStrength;
-    uniforms.radius.value = bloomRadius;
-  }, [bloomThreshold, bloomStrength, bloomRadius, uniforms]);
+    renderPipeline.outputNode = enabled ? bloomChain : scenePass;
+    // CRITICAL FIX: Simply let the renderer know the node needs a compilation review, 
+    // without invoking the dangerous hardware-level reset.
+    renderPipeline.needsUpdate = true; 
+  }, [enabled, renderPipeline, bloomChain, scenePass]);
 
-  // 4. Handle graph tree switching cleanly when the checkbox actually toggles
+  // Clean memory structures
   useEffect(() => {
-    renderPipeline.outputNode = bloomEnabled ? bloomChain : scenePass;
-
-    // Explicitly notify the WebGPU node compiler system that the graph output root swapped
-    if (renderer.backend && renderer.backend.updater) {
-      renderer.backend.updater.updatePipeline(renderPipeline);
-    }
-  }, [bloomEnabled, renderPipeline, bloomChain, scenePass, renderer]);
+    return () => {
+      renderPipeline.dispose();
+    };
+  }, [renderPipeline]);
 
   // 5. Lightweight render loop runner
   useFrame(() => {
     renderPipeline.render();
-  }, 1); // Render priority 1 ensures it executes after the main scene graph completes updates
+  }, 1);
 
   return null;
 }
