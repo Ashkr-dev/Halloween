@@ -20,8 +20,8 @@ import {
 // ==========================================
 // 1. Static Global Environment Uniforms
 // ==========================================
-const moonColor = uniform(new THREE.Color("#285081"));
-const moonIntensity = uniform(6.0);
+const moonColor = uniform(new THREE.Color("#ffffff"));
+const moonIntensity = uniform(0);
 
 // ==========================================
 // 2. Pure Static TSL Composition Graph (Compiled ONCE)

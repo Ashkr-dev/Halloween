@@ -19,14 +19,16 @@ import * as THREE from "three/webgpu";
 // ==========================================
 // 1. Pure Static TSL Graphs (Compiled Exactly ONCE)
 // ==========================================
-const getFireColorNode = Fn(([uSecColor, uFireColor, uTipColor, uFireIntensity]) => {
-  const baseColor = mix(
-    mix(uSecColor, uFireColor, smoothstep(1, 0, uv().y)),
-    uTipColor,
-    smoothstep(0.7, 0.1, uv().y),
-  );
-  return baseColor.mul(uFireIntensity);
-});
+const getFireColorNode = Fn(
+  ([uSecColor, uFireColor, uTipColor, uFireIntensity]) => {
+    const baseColor = mix(
+      mix(uSecColor, uFireColor, smoothstep(1, 0, uv().y)),
+      uTipColor,
+      smoothstep(0.7, 0.1, uv().y),
+    );
+    return baseColor.mul(uFireIntensity);
+  },
+);
 
 const getFireOpacityNode = Fn(([noiseTexNode, uFireUvScale, uFireSpeed]) => {
   const fireUv = uv()
@@ -41,10 +43,7 @@ const getFireOpacityNode = Fn(([noiseTexNode, uFireUvScale, uFireSpeed]) => {
   const fireNoise = texture(noiseTexNode, noiseCoords).r;
   fireNoise.assign(smoothstep(0.4, 1, fireNoise));
 
-  const edgeFade = min(
-    smoothstep(0.1, 1, uv().y),
-    smoothstep(1, 0.8, uv().y),
-  );
+  const edgeFade = min(smoothstep(0.1, 1, uv().y), smoothstep(1, 0.8, uv().y));
 
   return mul(fireNoise, edgeFade).clamp(0, 1);
 });
@@ -58,12 +57,12 @@ export default function useFireMaterial() {
   // Keep uniforms persistent per-hook instance
   const uniforms = useMemo(
     () => ({
-      uFireColor: uniform(new THREE.Color("#ff8300")),
-      uSecColor: uniform(new THREE.Color("#ffc7a7")),
-      uTipColor: uniform(new THREE.Color("#ffb2b2")),
-      uFireUvScale: uniform(vec2(4, 0.3)),
-      uFireIntensity: uniform(1.5),
-      uFireSpeed: uniform(0.3),
+      uFireColor: uniform(new THREE.Color("#ffffff")),
+      uSecColor: uniform(new THREE.Color("#ffffff")),
+      uTipColor: uniform(new THREE.Color("#ffffff")),
+      uFireUvScale: uniform(vec2(0, 0)),
+      uFireIntensity: uniform(0),
+      uFireSpeed: uniform(0),
     }),
     [],
   );
@@ -129,16 +128,16 @@ export default function useFireMaterial() {
 
     // Map the structures directly while injecting structural parameters safely
     material.colorNode = getFireColorNode(
-      uniforms.uSecColor, 
-      uniforms.uFireColor, 
-      uniforms.uTipColor, 
-      uniforms.uFireIntensity
+      uniforms.uSecColor,
+      uniforms.uFireColor,
+      uniforms.uTipColor,
+      uniforms.uFireIntensity,
     );
-    
+
     material.opacityNode = getFireOpacityNode(
-      activeNoiseTex, 
-      uniforms.uFireUvScale, 
-      uniforms.uFireSpeed
+      activeNoiseTex,
+      uniforms.uFireUvScale,
+      uniforms.uFireSpeed,
     );
 
     return material;

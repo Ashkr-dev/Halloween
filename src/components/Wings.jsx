@@ -20,17 +20,17 @@ import { useGSAP } from "@gsap/react"; // 1. Import the official hook
 // ==========================================
 // CENTRAL EXPORTS
 // ==========================================
-export const wingTopColor = uniform(new THREE.Color("#6a32e2"));
-export const wingBottomColor = uniform(new THREE.Color("#e17cff"));
-export const wingGradient = uniform(vec2(0.0, 1.0));
-export const wingIntensity = uniform(4.9);
+export const wingTopColor = uniform(new THREE.Color("#ffffff"));
+export const wingBottomColor = uniform(new THREE.Color("#ffffff"));
+export const wingGradient = uniform(vec2(0.0, 0.0));
+export const wingIntensity = uniform(0.0);
 export const introProgress = uniform(0.0);
 
 const levaWrapY = uniform(0);
 const levaWrapZ = uniform(0);
 const levaBendPower = uniform(0);
-const levaInitialY = uniform(0); 
-const levaInitialZ = uniform(0); 
+const levaInitialY = uniform(0);
+const levaInitialZ = uniform(0);
 const levaFlapSpeed = uniform(0);
 const levaFlapIntensity = uniform(0);
 
@@ -44,18 +44,66 @@ export const wingGradientNode = Fn(() => {
 // ==========================================
 export function Wings({ geometry }) {
   const controls = useControls("Wing Rig", {
-    wrapY: { value: -1.1, min: -10.0, max: 10.0, step: 0.001, label: "Wrap Forward (Y)" },
-    wrapZ: { value: 0.18, min: -10.0, max: 10.0, step: 0.001, label: "Wrap Curl (Z)" },
-    bendPower: { value: 2.0, min: 1.0, max: 4.0, step: 0.1, label: "Bend Curvature" },
+    wrapY: {
+      value: -1.1,
+      min: -10.0,
+      max: 10.0,
+      step: 0.001,
+      label: "Wrap Forward (Y)",
+    },
+    wrapZ: {
+      value: 0.18,
+      min: -10.0,
+      max: 10.0,
+      step: 0.001,
+      label: "Wrap Curl (Z)",
+    },
+    bendPower: {
+      value: 2.0,
+      min: 1.0,
+      max: 4.0,
+      step: 0.1,
+      label: "Bend Curvature",
+    },
 
-    initialY: { value: 0.364, min: -3.0, max: 3.0, step: 0.001, label: "Initial Rest (Y)" },
-    initialZ: { value: 0.175, min: -3.0, max: 3.0, step: 0.001, label: "Initial Rest (Z)" },
+    initialY: {
+      value: 0.364,
+      min: -3.0,
+      max: 3.0,
+      step: 0.001,
+      label: "Initial Rest (Y)",
+    },
+    initialZ: {
+      value: 0.175,
+      min: -3.0,
+      max: 3.0,
+      step: 0.001,
+      label: "Initial Rest (Z)",
+    },
 
-    flapSpeed: { value: 4.0, min: 0.0, max: 15.0, step: 0.2, label: "Flap Speed" },
-    flapIntensity: { value: 0.15, min: 0.0, max: 1.0, step: 0.02, label: "Flap Range" },
+    flapSpeed: {
+      value: 4.0,
+      min: 0.0,
+      max: 15.0,
+      step: 0.2,
+      label: "Flap Speed",
+    },
+    flapIntensity: {
+      value: 0.15,
+      min: 0.0,
+      max: 1.0,
+      step: 0.02,
+      label: "Flap Range",
+    },
 
     autoPlayIntro: { value: true, label: "Play Intro Animation" },
-    manualProgress: { value: 0.0, min: 0.0, max: 1.0, step: 0.01, label: "Manual Intro Dev Slider" },
+    manualProgress: {
+      value: 0.0,
+      min: 0.0,
+      max: 1.0,
+      step: 0.01,
+      label: "Manual Intro Dev Slider",
+    },
   });
 
   const material = useMemo(() => {
@@ -102,7 +150,7 @@ export function Wings({ geometry }) {
   useGSAP(() => {
     if (controls.autoPlayIntro) {
       introProgress.value = 0;
-      
+
       gsap.to(introProgress, {
         value: 1.0,
         duration: 1.8,

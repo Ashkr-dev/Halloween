@@ -59,7 +59,7 @@ const getOpacityNode = Fn(([noiseTexNode, uSmokeUvScale, uSpeed]) => {
     .mul(uSmokeUvScale)
     .sub(vec2(0, time.mul(uSpeed)));
   const smoke = texture(noiseTexNode, smokeUv).r;
-  smoke.assign(smoothstep(0.5, 1.0, smoke));
+  smoke.assign(smoothstep(0.4, 1.0, smoke));
 
   const edgeFade = min(
     uv().y.mul(3),

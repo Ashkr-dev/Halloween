@@ -31,25 +31,34 @@ export default function Model(props) {
   }, [perlinNoise, foliageMatCap]);
 
   // 3. Isolated Uniform Block (Safe for multi-instance rendering loops)
-  const uniforms = useMemo(() => ({
-    uFoliageColor: uniform(new THREE.Color("#0d2e32")),
-    uWindSpeed: uniform(0.3),
-    uWindStrength: uniform(0.65),
-  }), []);
+  const uniforms = useMemo(
+    () => ({
+      uFoliageColor: uniform(new THREE.Color("#ffffff")),
+      uWindSpeed: uniform(0),
+      uWindStrength: uniform(0),
+    }),
+    [],
+  );
 
   // 4. Update Uniforms Reactively via Leva Callbacks (Removes useFrame overhead completely!)
   useControls("Foliage", {
     foliageColor: {
-      value: "#1b3538",
+      value: "#471a4a",
       onChange: (v) => uniforms.uFoliageColor.value.set(v),
     },
-    windSpeed: { 
-      value: 0.3, min: 0.0, max: 2.0, step: 0.05,
-      onChange: (v) => uniforms.uWindSpeed.value = v,
+    windSpeed: {
+      value: 0.3,
+      min: 0.0,
+      max: 2.0,
+      step: 0.05,
+      onChange: (v) => (uniforms.uWindSpeed.value = v),
     },
-    windStrength: { 
-      value: 0.65, min: 0.0, max: 3.0, step: 0.05,
-      onChange: (v) => uniforms.uWindStrength.value = v,
+    windStrength: {
+      value: 0.65,
+      min: 0.0,
+      max: 3.0,
+      step: 0.05,
+      onChange: (v) => (uniforms.uWindStrength.value = v),
     },
   });
 

@@ -19,9 +19,9 @@ import { useControls } from "leva";
 // ==========================================
 // 1. Static Uniforms (Can safely live globally)
 // ==========================================
-export const potColorNode = uniform(new THREE.Color("#32e241"));
-export const potColor2Node = uniform(new THREE.Color("#35993e"));
-export const potColor3Node = uniform(new THREE.Color("#cdf020"));
+export const potColorNode = uniform(new THREE.Color("#ffffff"));
+export const potColor2Node = uniform(new THREE.Color("#ffffff"));
+export const potColor3Node = uniform(new THREE.Color("#ffffff"));
 
 // ==========================================
 // 2. Pure Static TSL Shader Graph (Compiled ONCE)
@@ -34,7 +34,7 @@ const getPotColorNode = Fn(([noiseTexNode]) => {
   const centerUv = uv().sub(0.5);
   const distanceToCenter = centerUv.length();
   const angle = atan(centerUv.y, centerUv.x);
-  const radial = angle.div(TWO_PI).add(0.5);
+  // const radial = angle.div(TWO_PI).add(0.5);
 
   // Noise UV math
   const noiseUv = rotate(
