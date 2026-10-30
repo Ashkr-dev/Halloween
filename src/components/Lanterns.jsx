@@ -1,5 +1,5 @@
-import { useFrame } from "@react-three/fiber";
-import { min, uniform, uv } from "three/tsl";
+import { useEffect, useMemo } from "react";
+import { Fn, min, uniform, uv } from "three/tsl";
 import * as THREE from "three/webgpu";
 
 // ==========================================
@@ -9,36 +9,55 @@ export const lanternColor = uniform(new THREE.Color("#6bff30"));
 export const lanternIntensity = uniform(1.5);
 
 // ==========================================
-// 2. Isolated Material Setup
+// 2. Pure Static TSL Graph (Compiled Exactly ONCE)
 // ==========================================
-const lanternMaterial = new THREE.MeshBasicNodeMaterial();
+const getLanternColorNode = Fn(([uColor, uIntensity]) => {
+  // Static calculation tree layout
+  const gradient = min(uv().x.mul(2).pow(3), uv().x.mul(1.2).pow(2).oneMinus());
+  
+  // FIX: Successfully multiply intensity down to fragment execution block!
+  return uColor.mul(gradient).mul(uIntensity);
+});
 
-// Gradient
-const gradient = min(uv().x.mul(2).pow(3), uv().x.mul(1.2).pow(2).oneMinus());
-lanternMaterial.colorNode = lanternColor.mul(gradient);
+// ==========================================
+// 3. Lanterns Component
+// ==========================================
+export function Lanterns({ nodes }) {
+  // REMOVED: useFrame loop & 'controls' prop requirement!
 
-// ==========================================
-// 3. Lanterns Sub-Component
-// ==========================================
-export function Lanterns({ nodes, controls }) {
-  useFrame(() => {
-    lanternColor.value.set(controls.lanternColor);
-    lanternIntensity.value = controls.lanternIntensity;
-  });
+  // 1. Instanced material setup inside lifecycle bounds
+  const localMaterial = useMemo(() => {
+    const mat = new THREE.MeshBasicNodeMaterial();
+    
+    // Bind the static layout reference passing your global uniform descriptors
+    mat.colorNode = getLanternColorNode(lanternColor, lanternIntensity);
+    
+    return mat;
+  }, []);
+
+  // 2. Clean memory allocations upon component destruction stage
+  useEffect(() => {
+    return () => {
+      localMaterial.dispose();
+    };
+  }, [localMaterial]);
 
   return (
     <>
       <mesh
         geometry={nodes.candle_tips.geometry}
-        material={lanternMaterial}
+        material={localMaterial}
         position={[-4.126, 0.202, 1.419]}
       />
       <mesh
         geometry={nodes["House-light"].geometry}
-        material={lanternMaterial}
+        material={localMaterial}
         position={[0.008, 0, -6.016]}
       />
-      <mesh geometry={nodes.lanterns.geometry} material={lanternMaterial} />
+      <mesh 
+        geometry={nodes.lanterns.geometry} 
+        material={localMaterial} 
+      />
     </>
   );
 }

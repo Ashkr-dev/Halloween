@@ -10,8 +10,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@gsap/react": "^2.1.2",
     "@react-three/drei": "^10.7.9",
     "@react-three/fiber": "^9.8.1",
+    "gsap": "^3.15.0",
     "leva": "^0.10.1",
     "r3f-webgpu-perf": "^0.1.4",
     "react": "^19.2.8",

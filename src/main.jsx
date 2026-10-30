@@ -10,7 +10,7 @@ extend(THREE);
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <Leva collapsed />
+    <Leva collapsed  />
     <Canvas
       // shadows
       gl={async (canvasTarget) => {
