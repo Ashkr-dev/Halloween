@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Fn,
   mix,
@@ -15,7 +15,7 @@ import * as THREE from "three/webgpu";
 import { useFrame } from "@react-three/fiber";
 import { useControls } from "leva";
 import gsap from "gsap";
-import { useGSAP } from "@gsap/react"; // 1. Import the official hook
+import { useGSAP } from "@gsap/react";
 
 // ==========================================
 // CENTRAL EXPORTS
@@ -43,67 +43,25 @@ export const wingGradientNode = Fn(() => {
 // Wings Component
 // ==========================================
 export function Wings({ geometry }) {
+  // 1. Keep track of the custom event dispatched from LoadingScreen.jsx
+  const [assetsLoaded, setAssetsLoaded] = useState(false);
+
+  useEffect(() => {
+    const handleLoad = () => setAssetsLoaded(true);
+    window.addEventListener("loading-complete", handleLoad);
+    return () => window.removeEventListener("loading-complete", handleLoad);
+  }, []);
+
   const controls = useControls("Wing Rig", {
-    wrapY: {
-      value: -1.1,
-      min: -10.0,
-      max: 10.0,
-      step: 0.001,
-      label: "Wrap Forward (Y)",
-    },
-    wrapZ: {
-      value: 0.18,
-      min: -10.0,
-      max: 10.0,
-      step: 0.001,
-      label: "Wrap Curl (Z)",
-    },
-    bendPower: {
-      value: 2.0,
-      min: 1.0,
-      max: 4.0,
-      step: 0.1,
-      label: "Bend Curvature",
-    },
-
-    initialY: {
-      value: 0.364,
-      min: -3.0,
-      max: 3.0,
-      step: 0.001,
-      label: "Initial Rest (Y)",
-    },
-    initialZ: {
-      value: 0.175,
-      min: -3.0,
-      max: 3.0,
-      step: 0.001,
-      label: "Initial Rest (Z)",
-    },
-
-    flapSpeed: {
-      value: 4.0,
-      min: 0.0,
-      max: 15.0,
-      step: 0.2,
-      label: "Flap Speed",
-    },
-    flapIntensity: {
-      value: 0.15,
-      min: 0.0,
-      max: 1.0,
-      step: 0.02,
-      label: "Flap Range",
-    },
-
+    wrapY: { value: -1.1, min: -10.0, max: 10.0, step: 0.001, label: "Wrap Forward (Y)" },
+    wrapZ: { value: 0.18, min: -10.0, max: 10.0, step: 0.001, label: "Wrap Curl (Z)" },
+    bendPower: { value: 2.0, min: 1.0, max: 4.0, step: 0.1, label: "Bend Curvature" },
+    initialY: { value: 0.364, min: -3.0, max: 3.0, step: 0.001, label: "Initial Rest (Y)" },
+    initialZ: { value: 0.175, min: -3.0, max: 3.0, step: 0.001, label: "Initial Rest (Z)" },
+    flapSpeed: { value: 4.0, min: 0.0, max: 15.0, step: 0.2, label: "Flap Speed" },
+    flapIntensity: { value: 0.15, min: 0.0, max: 1.0, step: 0.02, label: "Flap Range" },
     autoPlayIntro: { value: true, label: "Play Intro Animation" },
-    manualProgress: {
-      value: 0.0,
-      min: 0.0,
-      max: 1.0,
-      step: 0.01,
-      label: "Manual Intro Dev Slider",
-    },
+    manualProgress: { value: 0.0, min: 0.0, max: 1.0, step: 0.01, label: "Manual Intro Dev Slider" },
   });
 
   const material = useMemo(() => {
@@ -146,21 +104,22 @@ export function Wings({ geometry }) {
     }
   });
 
-  // 2. Use useGSAP to orchestrate clean timelines with automatic disposal hooks
+  // 2. Plays the intro timeline ONLY when the loader completely clears out!
   useGSAP(() => {
-    if (controls.autoPlayIntro) {
+    if (controls.autoPlayIntro && assetsLoaded) {
       introProgress.value = 0;
 
+      // CRITICAL FIX: Targeted the '.value' directly so GSAP updates the TSL node variable safely
       gsap.to(introProgress, {
         value: 1.0,
         duration: 1.8,
-        delay: 0.5,
-        ease: "power4.out", // Changed from .in to .out for a smooth deceleration end snap!
+        delay: 0.2, // Small delay right after the screen fades away for better impact
+        ease: "power4.out",
       });
     }
-  }, [controls.autoPlayIntro]);
+  }, [controls.autoPlayIntro, assetsLoaded]);
 
-  // 3. Keep webGL geometry disposal completely independent to avoid runtime memory drops
+  // 3. Keep WebGL geometry disposal independent
   useEffect(() => {
     return () => material.dispose();
   }, [material]);
