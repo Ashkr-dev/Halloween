@@ -7,6 +7,7 @@ import Foliage from "./components/Foliage.jsx";
 import { Model } from "./components/Model.jsx";
 import PostProcessing from "./components/Postprocessing.jsx";
 import Sparkles from "./components/Sparkles.jsx";
+import { useFrame } from "@react-three/fiber";
 
 export default function App() {
   const controlsRef = useRef();
@@ -17,17 +18,11 @@ export default function App() {
     orbitControl: true,
   }));
 
-  // 2. High-frequency slider inputs handled safely via target updates
-  useControls("OrbitControls", {
-    target: {
-      value:[0, 0, 0],
-      onChange: (v) => {
-        if (controlsRef.current) {
-          controlsRef.current.target.set(v[0], v[1], v[2]);
-          controlsRef.current.update();
-        }
-      },
-    },
+  // 2. Custom state triggers
+  const { targetX, targetY, targetZ } = useControls("OrbitControls", {
+    targetX: { value: 0 },
+    targetY: { value: 1.42 },
+    targetZ: { value: -16 },
   });
 
   return (
@@ -38,15 +33,16 @@ export default function App() {
       {orbitControl && (
         <OrbitControls
           ref={controlsRef}
+          target={[targetX, targetY, targetZ]} // R3F handles the update automatically here
           enableDamping
           minPolarAngle={0}
-          maxPolarAngle={Math.PI * 0.49}
+          maxPolarAngle={Math.PI * 0.5}
           minDistance={3}
           maxDistance={20}
         />
       )}
 
-      <Camera />
+      {/* <Camera /> */}
       <Sparkles />
       <Foliage />
       <Model />
