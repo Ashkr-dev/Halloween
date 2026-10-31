@@ -12,7 +12,7 @@ export default function Camera() {
       {cameraEnable && (
         <PerspectiveCamera
           makeDefault
-          fov={35}
+          fov={40}
           near={1}
           far={50}
           position={cameraPosition}

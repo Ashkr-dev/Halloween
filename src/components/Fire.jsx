@@ -70,15 +70,15 @@ export default function useFireMaterial() {
   // Update uniforms REACTIVELY via Leva callbacks bypassing state
   useControls("Witch-Pot Fire", {
     fireColor: {
-      value: "#ff8300",
+      value: "#ffe000",
       onChange: (v) => uniforms.uFireColor.value.set(v),
     },
     secColor: {
-      value: "#ffc7a7",
+      value: "#ff650e",
       onChange: (v) => uniforms.uSecColor.value.set(v),
     },
     tipColor: {
-      value: "#ffb2b2",
+      value: "#ff5959",
       onChange: (v) => uniforms.uTipColor.value.set(v),
     },
     fireIntensity: {
@@ -89,7 +89,7 @@ export default function useFireMaterial() {
       onChange: (v) => (uniforms.uFireIntensity.value = v),
     },
     fireUvX: {
-      value: 4,
+      value: 3.86,
       min: 0,
       max: 20,
       step: 0.001,

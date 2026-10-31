@@ -83,22 +83,22 @@ export function Model(props) {
       onChange: (v) => (lanternIntensity.value = v),
     },
     wingTopColor: {
-      value: "#6a32e2",
+      value: "#310d7f",
       onChange: (v) => wingTopColor.value.set(v),
     },
     wingBottomColor: {
-      value: "#e17cff",
+      value: "#9d3fb9",
       onChange: (v) => wingBottomColor.value.set(v),
     },
     wingIntensity: {
-      value: 4.9,
+      value: 3.1,
       min: 0,
       max: 10,
       step: 0.1,
       onChange: (v) => (wingIntensity.value = v),
     },
     wingGradient: {
-      value: [0.0, 1.0],
+      value: [0.27, 1.0],
       min: 0,
       max: 1,
       step: 0.001,

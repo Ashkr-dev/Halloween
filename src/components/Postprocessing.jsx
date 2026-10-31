@@ -7,16 +7,16 @@ import { useControls } from "leva";
 
 export default function PostProcessing() {
   const { scene, camera, gl: renderer } = useThree();
-  
+
   // Track toggle states at the React layer so we structurally update the pipeline safely
   const [enabled, setEnabled] = useState(true);
 
   // 1. Uniform node references for the sliders
   const uniforms = useMemo(
     () => ({
-      threshold: uniform(0.25),
-      strength: uniform(0.2),
-      radius: uniform(0.7),
+      threshold: uniform(0),
+      strength: uniform(0),
+      radius: uniform(0),
     }),
     [],
   );
@@ -28,7 +28,7 @@ export default function PostProcessing() {
       onChange: (v) => setEnabled(v), // Safe React state flip
     },
     bloomThreshold: {
-      value: 0.25,
+      value: 0.03,
       min: 0,
       max: 1,
       step: 0.01,
@@ -36,18 +36,18 @@ export default function PostProcessing() {
       onChange: (v) => (uniforms.threshold.value = v),
     },
     bloomStrength: {
-      value: 0.2,
+      value: 0.4,
       min: 0,
       max: 5,
       step: 0.1,
       label: "Strength",
       onChange: (v) => (uniforms.strength.value = v),
     },
-    bloomRadius: { 
-      value: 0.7, 
-      min: 0, 
-      max: 3, 
-      step: 0.1, 
+    bloomRadius: {
+      value: 0.4,
+      min: 0,
+      max: 3,
+      step: 0.1,
       label: "Radius",
       onChange: (v) => (uniforms.radius.value = v),
     },
@@ -73,9 +73,9 @@ export default function PostProcessing() {
   // 4. Safely redirect the graph root pointer depending on the state variable
   useEffect(() => {
     renderPipeline.outputNode = enabled ? bloomChain : scenePass;
-    // CRITICAL FIX: Simply let the renderer know the node needs a compilation review, 
+    // CRITICAL FIX: Simply let the renderer know the node needs a compilation review,
     // without invoking the dangerous hardware-level reset.
-    renderPipeline.needsUpdate = true; 
+    renderPipeline.needsUpdate = true;
   }, [enabled, renderPipeline, bloomChain, scenePass]);
 
   // Clean memory structures
