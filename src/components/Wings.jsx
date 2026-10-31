@@ -1,3 +1,7 @@
+import { useGSAP } from "@gsap/react";
+import { useFrame } from "@react-three/fiber";
+import gsap from "gsap";
+import { useControls } from "leva";
 import { useEffect, useMemo, useState } from "react";
 import {
   Fn,
@@ -5,17 +9,13 @@ import {
   positionLocal,
   rotate,
   smoothstep,
+  time,
   uniform,
   uv,
   vec2,
   vec3,
-  time,
 } from "three/tsl";
 import * as THREE from "three/webgpu";
-import { useFrame } from "@react-three/fiber";
-import { useControls } from "leva";
-import gsap from "gsap";
-import { useGSAP } from "@gsap/react";
 
 // ==========================================
 // CENTRAL EXPORTS
@@ -112,9 +112,9 @@ export function Wings({ geometry }) {
       // CRITICAL FIX: Targeted the '.value' directly so GSAP updates the TSL node variable safely
       gsap.to(introProgress, {
         value: 1.0,
-        duration: 1.8,
+        duration: 1,
         delay: 0.2, // Small delay right after the screen fades away for better impact
-        ease: "power4.out",
+        ease: "power4.in",
       });
     }
   }, [controls.autoPlayIntro, assetsLoaded]);

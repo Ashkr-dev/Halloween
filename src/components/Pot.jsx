@@ -1,4 +1,6 @@
 import { useTexture } from "@react-three/drei";
+import { useControls } from "leva";
+import { useMemo } from "react";
 import {
   atan,
   Fn,
@@ -7,14 +9,11 @@ import {
   step,
   texture,
   time,
-  TWO_PI,
   uniform,
   uv,
   vec2,
 } from "three/tsl";
 import * as THREE from "three/webgpu";
-import { useMemo } from "react";
-import { useControls } from "leva";
 
 // ==========================================
 // 1. Static Uniforms (Can safely live globally)
@@ -92,9 +91,9 @@ export function Pot({ nodes }) {
     noiseTexture.wrapS = THREE.RepeatWrapping;
     noiseTexture.wrapT = THREE.RepeatWrapping;
 
-    const mat = new THREE.MeshBasicNodeMaterial();
-    mat.colorNode = getPotColorNode(noiseTexture);
-    return mat;
+    const material = new THREE.MeshBasicNodeMaterial();
+    material.colorNode = getPotColorNode(noiseTexture);
+    return material;
   }, [noiseTexture]);
 
   return (

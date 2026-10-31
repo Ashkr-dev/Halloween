@@ -16,6 +16,7 @@ import {
   wingBottomColor,
   wingGradient,
 } from "./Wings.jsx";
+import Skull from "./Skull.jsx";
 
 // ==========================================
 // 1. Static Global Environment Uniforms
@@ -145,6 +146,7 @@ export function Model(props) {
 
       <Pot nodes={nodes} />
       <Smoke nodes={nodes} />
+      <Skull nodes={nodes} />
 
       <mesh
         geometry={nodes.fire.geometry}
