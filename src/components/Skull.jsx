@@ -51,6 +51,7 @@ export default function Skull({ nodes }) {
     topColor: {
       value: "#ff0000",
       onChange: (v) => { if(uniforms?.topColor) uniforms.topColor.value.set(v); },
+      label: "Eye Color",
     },
     eyeIntensity: {
       value: 6,

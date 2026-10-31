@@ -110,7 +110,7 @@ export function Wings({ geometry }) {
         value: 1.0,
         duration: 1.5,
         delay: 0.2,
-        ease: "power3.inOut",
+        ease: "power4.in",
         onUpdate: () => {
           setArgs({ manualProgress: introProgress.value });
         }
