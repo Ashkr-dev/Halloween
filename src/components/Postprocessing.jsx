@@ -1,31 +1,30 @@
 import { useFrame, useThree } from "@react-three/fiber";
-import { pass, uniform } from "three/tsl";
+import { pass, uniform, select } from "three/tsl";
 import * as THREE from "three/webgpu";
-import { useMemo, useEffect, useState } from "react";
+import { useMemo, useEffect, useRef } from "react";
 import { bloom } from "three/examples/jsm/tsl/display/BloomNode.js";
 import { useControls } from "leva";
 
 export default function PostProcessing() {
   const { scene, camera, gl: renderer } = useThree();
 
-  // Track toggle states at the React layer so we structurally update the pipeline safely
-  const [enabled, setEnabled] = useState(true);
+  // 1. Uniform allocations pinned to a reference to dodge Leva's mount race-condition
+  const uniformsRef = useRef({
+    enabled: uniform(1), // 1 = enabled, 0 = disabled
+    threshold: uniform(0.03),
+    strength: uniform(0.4),
+    radius: uniform(0.4),
+  });
 
-  // 1. Uniform node references for the sliders
-  const uniforms = useMemo(
-    () => ({
-      threshold: uniform(0),
-      strength: uniform(0),
-      radius: uniform(0),
-    }),
-    [],
-  );
+  const uniforms = uniformsRef.current;
 
-  // 2. Drive uniform properties via change events
+  // 2. Control system mapping
   useControls("PostProcessing", {
     bloomEnabled: {
       value: true,
-      onChange: (v) => setEnabled(v), // Safe React state flip
+      onChange: (v) => {
+        uniforms.enabled.value = v ? 1 : 0;
+      },
     },
     bloomThreshold: {
       value: 0.03,
@@ -33,7 +32,9 @@ export default function PostProcessing() {
       max: 1,
       step: 0.01,
       label: "Threshold",
-      onChange: (v) => (uniforms.threshold.value = v),
+      onChange: (v) => {
+        uniforms.threshold.value = v;
+      },
     },
     bloomStrength: {
       value: 0.4,
@@ -41,7 +42,9 @@ export default function PostProcessing() {
       max: 5,
       step: 0.1,
       label: "Strength",
-      onChange: (v) => (uniforms.strength.value = v),
+      onChange: (v) => {
+        uniforms.strength.value = v;
+      },
     },
     bloomRadius: {
       value: 0.4,
@@ -49,43 +52,47 @@ export default function PostProcessing() {
       max: 3,
       step: 0.1,
       label: "Radius",
-      onChange: (v) => (uniforms.radius.value = v),
+      onChange: (v) => {
+        uniforms.radius.value = v;
+      },
     },
   });
 
-  // 3. Construct the independent nodes safely
-  const { renderPipeline, scenePass, bloomChain } = useMemo(() => {
+  // 3. Construct the stable WebGPU processing architecture
+  const renderPipeline = useMemo(() => {
     const pipeline = new THREE.RenderPipeline(renderer);
+    
+    // Core render pass containing your geometry and lighting
     const scenePass = pass(scene, camera);
+    
+    // Extract the raw color node output from your scene execution
+    const sceneColor = scenePass.getTextureNode();
 
-    // Dynamic node evaluation graph
-    const glowNode = bloom(
-      scenePass,
+    // Compute the bloom layer node based on the scene colors
+    const bloomLayer = bloom(
+      sceneColor,
       uniforms.strength,
       uniforms.radius,
-      uniforms.threshold,
+      uniforms.threshold
     );
-    const bloomChain = scenePass.add(glowNode);
 
-    return { renderPipeline: pipeline, scenePass, bloomChain };
+    // Composite: Add bloom on top of the base scene color
+    const bloomedScene = sceneColor.add(bloomLayer);
+
+    // FIX: Conditionally select between the full composition or clean scene colors
+    pipeline.outputNode = select(uniforms.enabled, bloomedScene, sceneColor);
+
+    return pipeline;
   }, [scene, camera, renderer, uniforms]);
 
-  // 4. Safely redirect the graph root pointer depending on the state variable
-  useEffect(() => {
-    renderPipeline.outputNode = enabled ? bloomChain : scenePass;
-    // CRITICAL FIX: Simply let the renderer know the node needs a compilation review,
-    // without invoking the dangerous hardware-level reset.
-    renderPipeline.needsUpdate = true;
-  }, [enabled, renderPipeline, bloomChain, scenePass]);
-
-  // Clean memory structures
+  // 4. Memory clean up cycle
   useEffect(() => {
     return () => {
       renderPipeline.dispose();
     };
   }, [renderPipeline]);
 
-  // 5. Lightweight render loop runner
+  // 5. Manual render execution control hook
   useFrame(() => {
     renderPipeline.render();
   }, 1);

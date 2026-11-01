@@ -40,7 +40,6 @@ export default function Model(props) {
     [],
   );
 
-  // 4. Update Uniforms Reactively via Leva Callbacks (Removes useFrame overhead completely!)
   useControls("Foliage", {
     foliageColor: {
       value: "#471a4a",
@@ -65,9 +64,9 @@ export default function Model(props) {
   // 5. Build and isolate the material layout inside this instance scope completely
   const finalMaterial = useMemo(() => {
     const material = new THREE.MeshMatcapNodeMaterial({
-      transparent: true,
-      depthWrite: false, // Fire/foliage transparency shouldn't lock depth sorting pipelines
-      alphaTest: 0.1,
+      transparent: false,
+      // depthWrite: true, 
+      alphaTest: 0.6,
       side: THREE.DoubleSide,
       matcap: foliageMatCap,
       alphaMap: foliageAlphaMap,
@@ -90,7 +89,7 @@ export default function Model(props) {
       return positionLocal;
     })();
 
-    material.opacityNode = texture(foliageAlphaMap, uv());
+    // material.alphaNode = texture(foliageAlphaMap, uv(0));
 
     return material;
   }, [uniforms, perlinNoise, foliageMatCap, foliageAlphaMap]);

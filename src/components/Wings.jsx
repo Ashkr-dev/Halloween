@@ -1,7 +1,6 @@
 import { useGSAP } from "@gsap/react";
-import { useFrame } from "@react-three/fiber";
 import gsap from "gsap";
-import { useControls, folder } from "leva";
+import { folder, useControls } from "leva";
 import { useEffect, useMemo, useState } from "react";
 import {
   Fn,
@@ -23,13 +22,14 @@ export const wingGradient = uniform(vec2(0.0, 0.0));
 export const wingIntensity = uniform(0.0);
 export const introProgress = uniform(0.0);
 
-const levaWrapY = uniform(0);
-const levaWrapZ = uniform(0);
-const levaBendPower = uniform(0);
-const levaInitialY = uniform(0);
-const levaInitialZ = uniform(0);
-const levaFlapSpeed = uniform(0);
-const levaFlapIntensity = uniform(0);
+// Initialize with your default slider values directly
+const levaWrapY = uniform(-1.1);
+const levaWrapZ = uniform(0.18);
+const levaBendPower = uniform(2.0);
+const levaInitialY = uniform(0.364);
+const levaInitialZ = uniform(0.175);
+const levaFlapSpeed = uniform(4.0);
+const levaFlapIntensity = uniform(0.15);
 
 export const wingGradientNode = Fn(() => {
   const gradient = smoothstep(wingGradient.x, wingGradient.y, uv(0).y);
@@ -45,21 +45,83 @@ export function Wings({ geometry }) {
     return () => window.removeEventListener("loading-complete", handleLoad);
   }, []);
 
-  const [controls, setArgs] = useControls(() => ({
-    "Wing Rig": folder({
-      wrapY: { value: -1.1, min: -10.0, max: 10.0, step: 0.001, label: "Wrap Forward (Y)" },
-      wrapZ: { value: 0.18, min: -10.0, max: 10.0, step: 0.001, label: "Wrap Curl (Z)" },
-      bendPower: { value: 2.0, min: 1.0, max: 4.0, step: 0.1, label: "Bend Curvature" },
-      initialY: { value: 0.364, min: -3.0, max: 3.0, step: 0.001, label: "Initial Rest (Y)" },
-      initialZ: { value: 0.175, min: -3.0, max: 3.0, step: 0.001, label: "Initial Rest (Z)" },
-      flapSpeed: { value: 4.0, min: 0.0, max: 15.0, step: 0.2, label: "Flap Speed" },
-      flapIntensity: { value: 0.15, min: 0.0, max: 1.0, step: 0.02, label: "Flap Range" },
-      autoPlayIntro: { value: true, label: "Play Intro Animation" },
-      manualProgress: { value: 0.0, min: 0.0, max: 1.0, step: 0.01, label: "Manual Intro Dev Slider" },
-    })
-  }));
+  // FIXED: Accesses 'get' directly inside the scope block to avoid reading 'controls' early
+  const [controls, setArgs] = useControls(() => {
+    return {
+      "Wing Rig": folder({
+        wrapY: {
+          value: -1.1,
+          min: -10.0,
+          max: 10.0,
+          step: 0.001,
+          label: "Wrap Forward (Y)",
+          onChange: (v) => (levaWrapY.value = v),
+        },
+        wrapZ: {
+          value: 0.18,
+          min: -10.0,
+          max: 10.0,
+          step: 0.001,
+          label: "Wrap Curl (Z)",
+          onChange: (v) => (levaWrapZ.value = v),
+        },
+        bendPower: {
+          value: 2.0,
+          min: 1.0,
+          max: 4.0,
+          step: 0.1,
+          label: "Bend Curvature",
+          onChange: (v) => (levaBendPower.value = v),
+        },
+        initialY: {
+          value: 0.364,
+          min: -3.0,
+          max: 3.0,
+          step: 0.001,
+          label: "Initial Rest (Y)",
+          onChange: (v) => (levaInitialY.value = v),
+        },
+        initialZ: {
+          value: 0.175,
+          min: -3.0,
+          max: 3.0,
+          step: 0.001,
+          label: "Initial Rest (Z)",
+          onChange: (v) => (levaInitialZ.value = v),
+        },
+        flapSpeed: {
+          value: 4.0,
+          min: 0.0,
+          max: 15.0,
+          step: 0.1,
+          label: "Flap Speed",
+          onChange: (v) => (levaFlapSpeed.value = v),
+        },
+        flapIntensity: {
+          value: 0.15,
+          min: 0.0,
+          max: 1.0,
+          step: 0.02,
+          label: "Flap Range",
+          onChange: (v) => (levaFlapIntensity.value = v),
+        },
+        autoPlayIntro: { value: true, label: "Play Intro Animation" },
+        manualProgress: {
+          value: 0.0,
+          min: 0.0,
+          max: 1.0,
+          step: 0.01,
+          label: "Manual Intro Dev Slider",
+          onChange: (v, path, context) => {
+            // Natively reads the live context state toggle safely
+            const isAutoPlay = context.get("Wing Rig.autoPlayIntro");
+            if (!isAutoPlay) introProgress.value = v;
+          },
+        },
+      }),
+    };
+  }, []); // Keeps the dependency array completely empty!
 
-  // OPTIMIZED: Memoized material instantiation fixes the active GPU memory leak
   const material = useMemo(() => {
     const mat = new THREE.MeshBasicNodeMaterial({
       side: THREE.DoubleSide,
@@ -75,7 +137,6 @@ export function Wings({ geometry }) {
 
     const baseFlap = time.mul(levaFlapSpeed).sin().mul(levaFlapIntensity);
 
-    // Symmetrical forward/backward sweep on the Y angle component
     const targetY = sideSign.mul(levaInitialY.add(baseFlap));
     const targetZ = sideSign.mul(levaInitialZ);
     const openPose = vec3(0, targetY, targetZ);
@@ -87,33 +148,17 @@ export function Wings({ geometry }) {
     return mat;
   }, []);
 
-  useFrame(() => {
-    levaWrapY.value = controls.wrapY;
-    levaWrapZ.value = controls.wrapZ;
-    levaBendPower.value = controls.bendPower;
-    levaInitialY.value = controls.initialY;
-    levaInitialZ.value = controls.initialZ;
-    levaFlapSpeed.value = controls.flapSpeed;
-    levaFlapIntensity.value = controls.flapIntensity;
-
-    if (!controls.autoPlayIntro) {
-      introProgress.value = controls.manualProgress;
-    }
-  });
 
   useGSAP(() => {
     if (controls.autoPlayIntro && assetsLoaded) {
       introProgress.value = 0;
-      setArgs({ manualProgress: 0 });
 
+      // 3. OPTIMIZED: Removed onUpdate state triggers to let GSAP run cleanly on its thread
       gsap.to(introProgress, {
         value: 1.0,
         duration: 1.5,
         delay: 0.2,
         ease: "power4.in",
-        onUpdate: () => {
-          setArgs({ manualProgress: introProgress.value });
-        }
       });
     }
   }, [controls.autoPlayIntro, assetsLoaded]);

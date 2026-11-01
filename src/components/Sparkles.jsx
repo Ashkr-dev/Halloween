@@ -29,9 +29,9 @@ export default function Sparkles() {
   // Sparkles Material
   const material = new SpriteNodeMaterial({
     alphaMap: skullTexture,
-    // depthWrite: false,
+    // depthWrite: true,
     alphaTest: 0.5,
-    // transparent: true,
+    transparent: false,
   });
 
   const basePosition = range(vec3(-8, 0.2, -8), vec3(8, 2.5, 8));

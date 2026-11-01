@@ -53,7 +53,9 @@ export function Model(props) {
   const colorMap = useTexture("/Textures/colorMap.webp");
   const lightMap = useTexture("/Textures/lightMap.webp");
 
-  // Reactively drive ALL global uniforms out of the useFrame loop!
+  // ==========================================
+  // 4. Leva Controls (Correctly called inside the hook context)
+  // ==========================================
   useControls("Graveyard Lighting", {
     moonColor: {
       value: "#285081",

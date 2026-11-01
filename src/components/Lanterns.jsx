@@ -23,7 +23,6 @@ const getLanternColorNode = Fn(([uColor, uIntensity]) => {
 // 3. Lanterns Component
 // ==========================================
 export function Lanterns({ nodes }) {
-  // REMOVED: useFrame loop & 'controls' prop requirement!
 
   // 1. Instanced material setup inside lifecycle bounds
   const localMaterial = useMemo(() => {
