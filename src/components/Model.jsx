@@ -1,22 +1,21 @@
 import { useGLTF, useTexture } from "@react-three/drei";
 import { useControls } from "leva";
-import { useMemo, useEffect } from "react";
-import { add, mul, texture, uniform, uv, vec4 } from "three/tsl";
+import { useEffect, useMemo } from "react";
+import { Fn, add, mul, texture, uniform, uv, vec4 } from "three/tsl";
 import * as THREE from "three/webgpu";
-import { Fn } from "three/tsl";
 import useFireMaterial from "./Fire.jsx";
 import { Lanterns, lanternColor, lanternIntensity } from "./Lanterns.jsx";
-import { Pot, potColorNode } from "./Pot.jsx";
+import { Pot } from "./Pot.jsx";
+import Skull from "./Skull.jsx";
 import { Smoke } from "./Smoke.jsx";
 import {
   Wings,
+  wingBottomColor,
+  wingGradient,
   wingGradientNode,
   wingIntensity,
   wingTopColor,
-  wingBottomColor,
-  wingGradient,
 } from "./Wings.jsx";
-import Skull from "./Skull.jsx";
 
 // ==========================================
 // 1. Static Global Environment Uniforms
@@ -66,10 +65,6 @@ export function Model(props) {
       max: 10,
       step: 0.1,
       onChange: (v) => (moonIntensity.value = v),
-    },
-    potColor: {
-      value: "#32e241",
-      onChange: (v) => potColorNode.value.set(v),
     },
     lanternColor: {
       value: "#30f6ff",
