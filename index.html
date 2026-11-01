@@ -2,7 +2,8 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="/OG/favicon.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/OG/favicon.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/OG/favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Spooky Graveyard</title>
 
@@ -41,6 +42,21 @@
     <meta name="twitter:image" content="/OG/og-image.jpg" />
   </head>
   <body>
+    <!-- Visually hidden h1 for search engines and accessibility bots -->
+    <h1
+      style="
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        border: 0;
+      "
+    >
+      The Graveyard Halloween Project - 3D Interactive Experience
+    </h1>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
