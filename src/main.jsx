@@ -28,6 +28,8 @@ createRoot(document.getElementById("root")).render(
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
         renderer.toneMappingExposure = 1;
 
+   
+
         await renderer.init();
         return renderer;
       }}

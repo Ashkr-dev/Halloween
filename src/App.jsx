@@ -13,7 +13,7 @@ export default function App() {
 
   // 1. Structural state triggers (Keep these as standard React boundaries)
   const [{ perfVisible, orbitControl }] = useControls(() => ({
-    perfVisible: true,
+    perfVisible: false,
     orbitControl: true,
   }));
 
@@ -22,6 +22,7 @@ export default function App() {
   //   targetY: { value: 0 },
   //   targetZ: { value: 0},
   // });
+ 
 
   return (
     <>
@@ -34,7 +35,7 @@ export default function App() {
           // target={[0, 0, 0]} // R3F handles the update automatically here
           enableDamping
           minPolarAngle={0}
-          maxPolarAngle={Math.PI * 0.49}
+          maxPolarAngle={Math.PI * 0.48}
           minDistance={3}
           maxDistance={30}
         />
