@@ -6,5 +6,65 @@ body,
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background-color: #1a1a1a; /* Adds a visible backdrop color */
+  background-color: #1a1a1a;
+}
+
+.mountains-of-christmas-regular {
+  font-family: "Mountains of Christmas", serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+/* Base style shared across both links */
+.source-code, .x {
+  position: absolute;
+  right: 15px; /* Slightly more breathing room from the edge */
+  color: #544d4d; 
+  background: none;
+  font-family: "Mountains of Christmas", serif;
+  font-size: 2rem; /* Great scale for desktop screens */
+  z-index: 10;
+  text-decoration: none; 
+  transition: all 0.3s ease-in-out; 
+}
+
+/* Desktop Vertical Positioning */
+.source-code {
+  bottom: 45px;
+}
+
+.x {
+  bottom: 10px;
+}
+
+/* --- Hover Effects --- */
+.source-code:hover {
+  color: #00f2fe; 
+  text-shadow: 0 0 8px #00f2fe, 0 0 20px #00f2fe;
+}
+
+.x:hover {
+  color: #ff33aa;
+  text-shadow: 0 0 8px #ff33aa, 0 0 20px #ff33aa;
+}
+
+/* ==========================================================================
+   📱 RESPONSIVE MEDIA QUERY (For Mobile Screens under 600px width)
+   ========================================================================== */
+@media (max-width: 600px) {
+  .source-code, .x {
+    font-size: 1.4rem; /* Scales font down beautifully so it fits small displays */
+    right: 2%; /* Moves links away from the tight corner */
+    /* transform: translateX(50%); Centers the text perfectly across the screen width */
+    text-align: center;
+    /* width: 100%; Ensures bounds are clean for centering */
+  }
+
+  .source-code {
+    bottom: 40px; /* Adjust spacing dynamically */
+  }
+
+  .x {
+    bottom: 15px;
+  }
 }
